@@ -11,12 +11,20 @@ public class FoodModel extends GridWorldModel {
     public static final int MOVING_COST = 1;
     public static final int ATTACK_COST = 4;
     
+	// добавлено: начальная грузоподъемность и увеличение грузоподъемности от поедания еды
+	private static final int INITIAL_CAPACITY = 10;
+	private static final int FOOD_CAPACITY_DELTA = 1;
+	
     //private Logger logger = Logger.getLogger(FoodModel.class.getName());
 
     int[] strengths;
     int[] attacked;
     int[][] owner; // the owner (agent id) of each food
     private int attackCount = 0;
+	
+	// добавлено: массив грузоподъемностей фуражиров и их текущей загрузки
+	int[] capacities;
+	int[] weights;
     
     public FoodModel(int size, int ags, int foods) {
         super(size, size, ags);
@@ -24,11 +32,16 @@ public class FoodModel extends GridWorldModel {
         strengths = new int[ags];
         attacked = new int[ags];
         owner = new int[size][size];
+		
+		capacities = new int[ags];
+		weights = new int[ags];
         
         // create agents
         for (int i=0; i<ags; i++) {
         	setAgPos(i, getFreePos());
         	strengths[i] = INITIAL_STR;
+			capacities[i] = INITIAL_CAPACITY;
+			weights[i] = 0; // изначально фуражир ничего не несет
         }
 
         // set attackers
@@ -87,6 +100,8 @@ public class FoodModel extends GridWorldModel {
     		remove(FOOD, x, y);
     		owner[x][y] = -1;
     		strengths[ag] += FOOD_NUTRITIVE_VALUE;
+			// добавлено: увеличиваем грузоподъемность фуражира
+			capacities[ag] += FOOD_CAPACITY_DELTA;
     		Location l = getFreePos(FOOD); 
         	add(FOOD, l);
         	setFoodOwner(l.x, l.y);
@@ -170,6 +185,13 @@ public class FoodModel extends GridWorldModel {
 		}
 		return false;
     }
+	
+	/* погрузка еды */
+	public boolean load(int ag, int x, int y) {
+		// проверяем, влезет ли еще еды этому фуражиру, и если да - загружаем
+		// ЗАГЛУШКА
+		return false;
+	}
 
     public int isAttacked(int ag) {
     	return attacked[ag];
