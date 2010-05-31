@@ -67,6 +67,9 @@ public class FoodView extends GridWorldView {
         if (hmodel.hasObject(FoodModel.FOOD, x, y)) {
 	        drawFood(g, x, y);			
         }
+		if (hmodel.hasObject(FoodModel.FOOD, x, y)) {
+			drawQueen(g, x, y);
+		}
     }
 	
 	@Override
@@ -74,11 +77,19 @@ public class FoodView extends GridWorldView {
 		if (object == FoodModel.FOOD && !hmodel.hasObject(FoodModel.AGENT, x, y)) {
 	        drawFood(g, x, y);			
 		}
+		else if (object == FoodModel.QUEEN && !hmodel.hasObject(FoodModel.AGENT, x, y)) {
+			drawQueen(g, x, y);
+		}
 	}
 
 	public void drawFood(Graphics g, int x, int y) {
 		g.setColor(Color.YELLOW);
-		g.fillRect(x * cellSizeW + 15, y * cellSizeH+15, cellSizeW-30, cellSizeH-30);			
+		g.fillRect(x * cellSizeW + 1, y * cellSizeH+1, cellSizeW-2, cellSizeH-2);			
+	}
+	
+	public void drawQueen(Graphics g, int x, int y) {
+		g.setColor(Color.CYAN);
+		g.fillRect(x * cellSizeW + 1, y * cellSizeH+1, cellSizeW-2, cellSizeH-2);
 	}
 
 }

@@ -209,6 +209,17 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
         	addPercept(agName, Literal.parseLiteral("attacked("+a+","+id2ag.get(a)+")"));
         }
     }
+	
+	// добавлено - предикат положения матки
+	void testQueen(String agName, int ag, int x, int y) {
+		if (model.hasObject(FoodModel.QUEEN, x, y)) {
+			Literal q = ASSyntax.createLiteral("food",
+							ASSyntax.createNumber(x),
+							ASSyntax.createNumber(y));
+							
+			addPercept(agName, q);
+		}
+	}
     
     void testFood(String agName, int ag, Atom where, int x, int y) {
     	if (model.hasObject(FoodModel.FOOD, x, y)) {
