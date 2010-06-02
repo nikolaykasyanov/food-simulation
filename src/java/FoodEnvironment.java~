@@ -79,10 +79,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     		model.attack(agId, x, y);
     	} else if (actId.equals("random_move")) {
     		model.randomMove(agId);
-    	// добавлено, действие "загрузить найденную еду"
-		} else if (actId.equals("load")) {
-			model.load(agId);
-		} else {
+    	} else {
     	    logger.warning("Unknown action: "+action);
     	}
 	} catch (Exception e) {}
@@ -183,17 +180,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 
         Literal lstrength = ASSyntax.createLiteral("strength", 
                 ASSyntax.createNumber(model.getAgStrength(ag)));
-        addPercept(agName, lstrength);
-
-		// добавлено, max. грузоподъемность фуражира
-		Literal lcapacity = ASSyntax.createLiteral("capacity",
-				ASSyntax.createNumber(model.getAgCapacity(ag)));
-		addPercept(agName, lcapacity);
-				
-		// добавлено, текущая нагрузка фуражира
-		Literal lweight = ASSyntax.createLiteral("weight",
-				ASSyntax.createNumber(model.getAgCapacity(ag)));
-		addPercept(agName, lweight);
+        addPercept(agName, lstrength);        
         
         testAg(agName, l.x - 1, l.y);
         testAg(agName, l.x + 1, l.y);
@@ -226,7 +213,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 	// добавлено - предикат положения матки
 	void testQueen(String agName, int ag, int x, int y) {
 		if (model.hasObject(FoodModel.QUEEN, x, y)) {
-			Literal q = ASSyntax.createLiteral("queen",
+			Literal q = ASSyntax.createLiteral("food",
 							ASSyntax.createNumber(x),
 							ASSyntax.createNumber(y));
 							
