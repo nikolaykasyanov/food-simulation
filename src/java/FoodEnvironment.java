@@ -192,7 +192,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 				
 		// добавлено, текущая нагрузка фуражира
 		Literal lweight = ASSyntax.createLiteral("weight",
-				ASSyntax.createNumber(model.getAgCapacity(ag)));
+				ASSyntax.createNumber(model.getAgWeight(ag)));
 		addPercept(agName, lweight);
         
         testAg(agName, l.x - 1, l.y);

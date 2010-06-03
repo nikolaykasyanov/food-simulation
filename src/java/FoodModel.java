@@ -1,3 +1,5 @@
+import java.util.logging.Logger;
+
 import jason.environment.grid.GridWorldModel;
 import jason.environment.grid.Location;
 
@@ -16,7 +18,7 @@ public class FoodModel extends GridWorldModel {
 	private static final int INITIAL_CAPACITY = 10;
 	private static final int FOOD_CAPACITY_DELTA = 1;
 	
-    //private Logger logger = Logger.getLogger(FoodModel.class.getName());
+    private Logger logger = Logger.getLogger(FoodModel.class.getName());
 
     int[] strengths;
     int[] attacked;
@@ -37,6 +39,7 @@ public class FoodModel extends GridWorldModel {
 		capacities = new int[ags];
 		weights = new int[ags];
 		
+		// добавляем матку в нужную клетку, пока все клетки свободны
 		add(QUEEN, new Location(10, 10)); 
         
         // create agents
@@ -190,6 +193,7 @@ public class FoodModel extends GridWorldModel {
     }
 	
 	public boolean load(int ag) {
+		logger.info("FoodModel.load called!");
 		Location l = getAgPos(ag);
     	return load(ag, l.x, l.y);
 	}
@@ -201,6 +205,9 @@ public class FoodModel extends GridWorldModel {
 				remove(FOOD, x, y);
 				owner[x][y] = -1;
 				weights[ag]++;
+			}
+			else {
+				logger.warning("Forager " + ag + "overloaded!");
 			}
 		}
 		return false;

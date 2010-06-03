@@ -12,16 +12,16 @@ queen(10,10).
 //+step(_) : food(_,_,my_pos,_) <- eat.
 
 // if we found food and our current load is max capacity, send message to others
-+step(_) : food(_,_,my_pos,Me) &
-			pos(Me,_,_) &
++step(_) : food(_,_,my_pos,_) &
 			capacity(C) &
 			weight(W) & W < C <- load.
+			
++step(_) : food(X,Y,see,_) & not agent(_,X,Y,_,_) <- move(X,Y).
 			
 /*+step(_) : food(_,_,my_pos,Me) &
 			pos(Me,_,_) &
 			capacity(C) &
 			weight(W) & W == C <- .broadcast*/
-			
 			
 +step(_) <- random_move.
 
