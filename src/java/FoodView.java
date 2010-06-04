@@ -42,7 +42,7 @@ public class FoodView extends GridWorldView {
             public void mouseReleased(MouseEvent e) {}
         });
         
-        JFreeChart xyc = ChartFactory.createXYLineChart( 
+        /*JFreeChart xyc = ChartFactory.createXYLineChart( 
                 "Agents' strength",
                 "step",
                 "strength",
@@ -53,7 +53,7 @@ public class FoodView extends GridWorldView {
                 true); //urls
         ChartFrame frame = new ChartFrame("Normative Simulation: Agents' Strength", xyc); 
         frame.pack(); 
-        frame.setVisible(true); 
+        frame.setVisible(true);*/ 
     }
     
     public void addSerie(String key, double[][] values) {

@@ -14,9 +14,8 @@ public class FoodModel extends GridWorldModel {
     public static final int MOVING_COST = 1;
     public static final int ATTACK_COST = 4;
     
-	// добавлено: начальная грузоподъемность и увеличение грузоподъемности от поедания еды
-	private static final int INITIAL_CAPACITY = 10;
-	private static final int FOOD_CAPACITY_DELTA = 1;
+	// добавлено: грузоподъемность фуражира
+	private static final int FORAGER_CAPACITY = 10;
 	
     private Logger logger = Logger.getLogger(FoodModel.class.getName());
 
@@ -35,8 +34,7 @@ public class FoodModel extends GridWorldModel {
         strengths = new int[ags];
         attacked = new int[ags];
         owner = new int[size][size];
-		
-		capacities = new int[ags];
+
 		weights = new int[ags];
 		
 		// добавляем матку в нужную клетку, пока все клетки свободны
@@ -46,7 +44,6 @@ public class FoodModel extends GridWorldModel {
         for (int i=0; i<ags; i++) {
         	setAgPos(i, getFreePos());
         	strengths[i] = INITIAL_STR;
-			capacities[i] = INITIAL_CAPACITY;
 			weights[i] = 0; // изначально фуражир ничего не несет
         }
 
@@ -106,8 +103,6 @@ public class FoodModel extends GridWorldModel {
     		remove(FOOD, x, y);
     		owner[x][y] = -1;
     		strengths[ag] += FOOD_NUTRITIVE_VALUE;
-			// добавлено: увеличиваем грузоподъемность фуражира
-			capacities[ag] += FOOD_CAPACITY_DELTA;
     		Location l = getFreePos(FOOD); 
         	add(FOOD, l);
         	setFoodOwner(l.x, l.y);
@@ -164,6 +159,7 @@ public class FoodModel extends GridWorldModel {
     }
     
     public boolean attack(int ag, int x, int y) {
+		//logger.info("FoodModel.attack called!");
     	//if (strengths[ag] < ATTACK_COST)
     	//	return false;
     	
@@ -193,7 +189,7 @@ public class FoodModel extends GridWorldModel {
     }
 	
 	public boolean load(int ag) {
-		logger.info("FoodModel.load called!");
+		//logger.info("FoodModel.load called!");
 		Location l = getAgPos(ag);
     	return load(ag, l.x, l.y);
 	}
@@ -201,7 +197,7 @@ public class FoodModel extends GridWorldModel {
 	/* погрузка еды */
 	private boolean load(int ag, int x, int y) {
 		if (hasObject(FOOD, x, y)) {
-			if (weights[ag] + 1 <= capacities[ag]) {
+			if (weights[ag] + 1 <= FORAGER_CAPACITY) {
 				remove(FOOD, x, y);
 				owner[x][y] = -1;
 				weights[ag]++;
@@ -222,7 +218,7 @@ public class FoodModel extends GridWorldModel {
     }
 	
 	public int getAgCapacity(int ag) {
-		return capacities[ag];
+		return FORAGER_CAPACITY;
 	}
 	
 	public int getAgWeight(int ag) {
