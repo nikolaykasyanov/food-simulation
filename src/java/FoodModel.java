@@ -8,6 +8,14 @@ public class FoodModel extends GridWorldModel {
     
     public static final int FOOD  = 16; // represent a cell with food
 	public static final int QUEEN = 32; // ячейка с маткой
+	public static final int QUEENS_FOOD = 64; // зарезервированная под еду для матки ячейка
+	public static final int RESERVED = 128; // забронированая фуражиром ячейка для выгрузки еды
+	public static final int FOOD_STORAGE = 256;
+	
+	public static final int RESERVED_SIZE = 2;
+	
+	public static final int QUEEN_X = 10;
+	public static final int QUEEN_Y = 10;
 
     public static final int INITIAL_STR = 40;
     public static final int FOOD_NUTRITIVE_VALUE = 20;
@@ -15,7 +23,7 @@ public class FoodModel extends GridWorldModel {
     public static final int ATTACK_COST = 4;
     
 	// добавлено: грузоподъемность фуражира
-	private static final int FORAGER_CAPACITY = 10;
+	private static final int FORAGER_CAPACITY = 2;
 	
     private Logger logger = Logger.getLogger(FoodModel.class.getName());
 
@@ -24,9 +32,22 @@ public class FoodModel extends GridWorldModel {
     int[][] owner; // the owner (agent id) of each food
     private int attackCount = 0;
 	
-	// добавлено: массив грузоподъемностей фуражиров и их текущей загрузки
-	int[] capacities;
+	// добавлено: текущей загрузки фуражиров
 	int[] weights;
+	
+	// добавлено: массив зарезервированных под еду клеток
+	Location[] reserved;
+	
+	// добавлено: поля, хранщие границы области, отведенной под еду для матки и
+	// координаты следюущей ячейки
+	private final int queenFoodBeginX;
+	private final int queenFoodBeginY;
+	
+	private final int queenFoodEndX;
+	private final int queenFoodEndY;
+	
+	private int queenFoodNextX;
+	private int queenFoodNextY;
     
     public FoodModel(int size, int ags, int foods) {
         super(size, size, ags);
@@ -37,8 +58,33 @@ public class FoodModel extends GridWorldModel {
 
 		weights = new int[ags];
 		
+		reserved = new Location[ags];
+		
 		// добавляем матку в нужную клетку, пока все клетки свободны
-		add(QUEEN, new Location(10, 10)); 
+		add(QUEEN, new Location(QUEEN_X, QUEEN_Y));
+		
+		// создаем зарезервированную область для еды матки
+		assert QUEEN_X - RESERVED_SIZE > 0 : "Reserved area doesn't fit in grid!";
+		assert QUEEN_Y - RESERVED_SIZE > 0 : "Reserved area doesn't fit in grid!";
+		assert QUEEN_X + RESERVED_SIZE < size : "Reserved area doesn't fit in grid!";
+		assert QUEEN_Y + RESERVED_SIZE < size : "Reserved area doesn't fit in grid!";
+		
+		queenFoodBeginX = QUEEN_X - RESERVED_SIZE;
+		queenFoodBeginY = QUEEN_Y - RESERVED_SIZE;
+		
+		queenFoodEndX = QUEEN_X + RESERVED_SIZE;
+		queenFoodEndY = QUEEN_Y + RESERVED_SIZE;
+		
+		queenFoodNextX = queenFoodBeginX;
+		queenFoodNextY = queenFoodBeginY;
+		
+		for(int x=queenFoodBeginX; x <= queenFoodEndX; x++) {
+			for (int y=queenFoodBeginY; y <= queenFoodEndY; y++) {
+				//if (!(x == QUEEN_X && y == QUEEN_Y)) {
+					add(QUEENS_FOOD, new Location(x, y));
+				//}
+			}
+		}
         
         // create agents
         for (int i=0; i<ags; i++) {
@@ -140,6 +186,47 @@ public class FoodModel extends GridWorldModel {
     	}
     	return false;
     }
+	
+	/* Проходит змейкой через хранилище еды */
+	public boolean next_food_storage(int ag) {
+		Location l = getAgPos(ag);
+		
+		if (l.x < queenFoodBeginX ||
+			l.x > queenFoodEndX ||
+			l.y < queenFoodBeginY ||
+			l.y > queenFoodEndY) {
+			logger.warning("Agent not in food storage area");
+			return false;
+		}
+		
+		if (l.x % 2 == 0) {
+			l.y++;
+			if (l.y > queenFoodEndY) {
+				l.x++;
+				if (l.x > queenFoodEndX) {
+					logger.warning("End of food storage");
+					return false;
+				}
+				else {
+					l.y = queenFoodEndY;
+				}
+			}
+		}
+		else {
+			l.y--;
+			if (l.y < queenFoodBeginY) {
+				l.x++;
+				if (l.x > queenFoodEndX) {
+					logger.warning("End of food storage");
+					return false;
+				}
+				else {
+					l.y = queenFoodBeginY;
+				}
+			}
+		}
+		return move(ag, l.x, l.y);
+	}
     
     public boolean randomMove(int ag) {
     	Location l = getAgPos(ag);
@@ -203,10 +290,44 @@ public class FoodModel extends GridWorldModel {
 				weights[ag]++;
 			}
 			else {
-				logger.warning("Forager " + ag + "overloaded!");
+				logger.warning("Forager " + ag + " is overloaded!");
 			}
 		}
 		return false;
+	}
+	
+	public boolean unload(int ag) {
+		Location l = getAgPos(ag);
+		return unload(ag, l.x, l.y);
+	}
+	
+	/* выгрузка еды */
+	private boolean unload(int ag, int x, int y) {
+		if (weights[ag] == 0) {
+			logger.warning("Nothing to unload");
+			return false;
+		}
+		
+		// check if cell is clean
+		if (hasObject(QUEENS_FOOD, x, y)) {
+			if (!hasObject(FOOD_STORAGE, x, y)) {
+				reserved[ag] = null;
+				weights[ag]--;
+				remove(RESERVED, x, y);
+				add(FOOD_STORAGE, x, y);
+				owner[x][y] = ag;
+				logger.warning("UNLOADED TO " + x + " " + y);
+				return true;
+			}
+			else {
+				logger.warning("Cell already contains storage");
+				return false;
+			}
+		}
+		else {
+			logger.warning("Can't unload to non-reserved cell.");
+			return false;
+		}
 	}
 
     public int isAttacked(int ag) {
@@ -245,5 +366,44 @@ public class FoodModel extends GridWorldModel {
     public int getAttackCounter() {
     	return attackCount;
     }
-    
+	
+	public boolean reserve(int ag) {
+		Location l = getNextFreeQueenFoodPosition();
+		if (l != null) {
+			reserved[ag] = l;
+			return true;
+		}
+		return false;
+	}
+	
+	private Location getNextFreeQueenFoodPosition() {
+		logger.info("FoodModel.getNextFreeQueenFoodPosition called");
+		if (queenFoodNextX != -1 && queenFoodNextY != -1) {
+			queenFoodNextY++;
+			if (queenFoodNextY > queenFoodEndY) {
+				if (queenFoodNextX < queenFoodEndX) {
+					queenFoodNextX++;
+					queenFoodNextY = queenFoodBeginY;
+				}
+				else {
+					queenFoodNextX = queenFoodNextY = -1;
+					return null;
+				}
+			}
+		}
+		if (queenFoodNextX != -1 && queenFoodNextY != -1) {
+			if (queenFoodNextX == QUEEN_X && queenFoodNextY == QUEEN_Y) {
+				queenFoodNextY++;
+			}
+			Location loc = new Location(queenFoodNextX, queenFoodNextY); 
+			add(RESERVED, loc);
+			logger.info("Next free location is " + queenFoodNextX + " " + queenFoodNextY);
+			return loc; 
+		}
+		return null;
+	}
+	
+	public Location getAgReserved(int ag) {
+		return reserved[ag];
+	}
 }

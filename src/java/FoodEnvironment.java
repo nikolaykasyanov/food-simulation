@@ -82,6 +82,12 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     	// добавлено, действие "загрузить найденную еду"
 		} else if (actId.equals("load")) {
 			model.load(agId);
+		} else if (actId.equals("unload")) {
+			model.unload(agId);
+		} else if (actId.equals("reserve")) {
+			model.reserve(agId);
+		} else if (actId.equals("next_food_storage")) {
+			model.next_food_storage(agId);
 		} else {
     	    logger.warning("Unknown action: "+action);
     	}
@@ -194,6 +200,28 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 		Literal lweight = ASSyntax.createLiteral("weight",
 				ASSyntax.createNumber(model.getAgWeight(ag)));
 		addPercept(agName, lweight);
+		
+		// добавлено, зарезервированная под еду ячейка
+		Location lr = model.getAgReserved(ag);
+		Literal lreserved;
+		if (lr == null) {
+				lreserved = ASSyntax.createLiteral("reserved",
+										ASSyntax.createNumber(-1),
+										ASSyntax.createNumber(-1));
+		}
+		else {
+				lreserved = ASSyntax.createLiteral("reserved",
+										ASSyntax.createNumber(lr.x),
+										ASSyntax.createNumber(lr.y));
+		}
+		addPercept(agName, lreserved);
+		
+		if (model.hasObject(model.FOOD_STORAGE, l.x, l.y)) {
+			Literal lstorage = ASSyntax.createLiteral("food_storage",
+											ASSyntax.createNumber(l.x),
+											ASSyntax.createNumber(l.y));
+			addPercept(agName, lstorage);
+		}
         
         testAg(agName, l.x - 1, l.y);
         testAg(agName, l.x + 1, l.y);
@@ -214,6 +242,22 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
         testFood(agName, ag, aSmell, l.x-2, l.y);
         testFood(agName, ag, aSmell, l.x-1, l.y - 1);
         testFood(agName, ag, aSmell, l.x-1, l.y + 1);
+		
+		// добавлено: матка
+		testQueen(agName, ag, aMyPos,  l.x, l.y);
+        testQueen(agName, ag, aSee, l.x - 1, l.y);
+        testQueen(agName, ag, aSee, l.x + 1, l.y);
+        testQueen(agName, ag, aSee, l.x, l.y + 1);
+        testQueen(agName, ag, aSee, l.x, l.y - 1);
+
+        testQueen(agName, ag, aSmell, l.x,   l.y - 2);
+        testQueen(agName, ag, aSmell, l.x,   l.y + 2);
+        testQueen(agName, ag, aSmell, l.x+1, l.y - 1);
+        testQueen(agName, ag, aSmell, l.x+1, l.y + 1);
+        testQueen(agName, ag, aSmell, l.x+2, l.y);
+        testQueen(agName, ag, aSmell, l.x-2, l.y);
+        testQueen(agName, ag, aSmell, l.x-1, l.y - 1);
+        testQueen(agName, ag, aSmell, l.x-1, l.y + 1);
    
         addPercept(agName, lstep);
         
@@ -224,7 +268,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     }
 	
 	// добавлено - предикат положения матки
-	void testQueen(String agName, int ag, int x, int y) {
+	/*void testQueen(String agName, int ag, int x, int y) {
 		if (model.hasObject(FoodModel.QUEEN, x, y)) {
 			Literal q = ASSyntax.createLiteral("queen",
 							ASSyntax.createNumber(x),
@@ -232,7 +276,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 							
 			addPercept(agName, q);
 		}
-	}
+	}*/
     
     void testFood(String agName, int ag, Atom where, int x, int y) {
     	if (model.hasObject(FoodModel.FOOD, x, y)) {
@@ -242,6 +286,16 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     		                where,
     		                ASSyntax.createNumber(model.getFoodOwner(x, y)));
 			addPercept(agName, f);
+    	}
+    }
+	
+	void testQueen(String agName, int ag, Atom where, int x, int y) {
+    	if (model.hasObject(FoodModel.QUEEN, x, y)) {
+    		Literal q = ASSyntax.createLiteral("queen",
+    		                ASSyntax.createNumber(x),
+    		                ASSyntax.createNumber(y),
+    		                where);
+			addPercept(agName, q);
     	}
     }
 
