@@ -4,6 +4,19 @@
 queen(10,10).
 searching(food).
 
++!find_queen: queen(_,_,my_pos) <- true.
+
++!find_queen: queen(X,Y,see) & not agent(_,X,Y,_,_) <- move(X,Y); !find_queen.
+
++!find_queen: queen(X,Y,smell) <- move(X,Y); !find_queen.
+
++!find_queen: queen(X,Y) <- move(X,Y); !find_queen.
+
+@qf1[atomic]
++step(_) : searching(queen) <- .print("Starting finding queen"); !find_queen;
+								+searching(storage);
+								-searching(queen).
+
 // if we found food and our current load is max capacity, send message to others
 +step(_): searching(food) &
 			food(X,Y,my_pos,_) &
@@ -18,19 +31,6 @@ searching(food).
 +step(_) : searching(food) & food(X,Y,see,_) & not agent(_,X,Y,_,_) <- move(X,Y).
 
 +step(_) : searching(food) & food(X,Y,smell,_) <- move(X,Y).
-
-
-+step(_) : searching(queen) <- !find_queen;
-								+searching(storage);
-								-searching(queen).
-
-+!find_queen: queen(_,_,my_pos) <- true.
-
-+!find_queen: queen(X,Y,see) & not agent(_,X,Y,_,_) <- move(X,Y); !find_queen.
-
-+!find_queen: queen(X,Y,smell) <- move(X,Y); !find_queen.
-
-+!find_queen: queen(X,Y) <- move(X,Y); !find_queen.
 			
 // just random move
 +step(_) <- random_move.
