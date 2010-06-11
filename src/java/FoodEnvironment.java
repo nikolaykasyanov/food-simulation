@@ -216,12 +216,18 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 		}
 		addPercept(agName, lreserved);
 		
+		Literal lstorage;
 		if (model.hasObject(model.FOOD_STORAGE, l.x, l.y)) {
-			Literal lstorage = ASSyntax.createLiteral("food_storage",
+			lstorage = ASSyntax.createLiteral("food_storage",
 											ASSyntax.createNumber(l.x),
 											ASSyntax.createNumber(l.y));
-			addPercept(agName, lstorage);
 		}
+		else {
+			lstorage = ASSyntax.createLiteral("food_storage",
+											ASSyntax.createNumber(-1),
+											ASSyntax.createNumber(-1));
+		}
+		addPercept(agName, lstorage);
         
         testAg(agName, l.x - 1, l.y);
         testAg(agName, l.x + 1, l.y);

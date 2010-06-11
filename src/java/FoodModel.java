@@ -205,6 +205,7 @@ public class FoodModel extends GridWorldModel {
 				l.x++;
 				if (l.x > queenFoodEndX) {
 					logger.warning("End of food storage");
+					logger.warning("RETURNING FALSE");
 					return false;
 				}
 				else {

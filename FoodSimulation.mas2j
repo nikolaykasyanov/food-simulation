@@ -57,7 +57,7 @@ MAS normative_simulation {
    
    // the class that implements the environment is FoodEnvironment
    // parameters are: grid size, number of agents, number of food units
-   environment: FoodEnvironment(50,1,250)
+   environment: FoodEnvironment(50,3,250)
    
    agents:
        //blind     [verbose=0] #50;
@@ -65,7 +65,7 @@ MAS normative_simulation {
        //normative [verbose=0] #10;
        //normativerule [verbose=0] #50;
        //reputation [verbose=0] #25;
-	   forager [verbose=0] #1;
+	   forager [verbose=0] #3;
 	   //attacker[verbose=0] #70;
        
    aslSourcePath: "src/asl";

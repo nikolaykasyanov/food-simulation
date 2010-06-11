@@ -3,12 +3,14 @@
 // assume queen's position
 queen(10,10).
 searching(food).
+storage_size(2).
 
 // if we found food and our current load is max capacity, send message to others
+@ff1[atomic]
 +step(_): searching(food) &
 			food(X,Y,my_pos,_) &
 			capacity(C) &
-			weight(W) & W == C <- +searching(queen); -searching(food); .broadcast(tell, food_here(X,Y)); random_move.
+			weight(C) <- +searching(queen); -searching(food); .broadcast(tell, food_here(X,Y)); random_move.
 			
 +step(_) : searching(food) & 
 			food(_,_,my_pos,_)
@@ -28,18 +30,32 @@ searching(food).
 // searching queen
 @qf1[atomic]
 +step(_) : searching(queen) <- !find_queen;
-								+searching(storage);
-								-searching(queen).
+								-searching(queen);
+								?queen(X,Y);
+								?storage_size(S);
+								!move_to(X-S,Y-S);
+								+searching(storage).
 
 +!find_queen: queen(_,_,my_pos) <- true.
 
 +!find_queen: queen(X,Y,see) & not agent(_,X,Y,_,_) <- move(X,Y); !find_queen.
 
++!find_queen: queen(X,Y,see) & agent(_,X,Y,_,_) <- random_move; !find_queen.
+
 +!find_queen: queen(X,Y,smell) <- move(X,Y); !find_queen.
 
 +!find_queen: queen(X,Y) <- move(X,Y); !find_queen.
 
++!move_to(X,Y) : pos(_,X,Y) <- true.
+
++!move_to(X,Y) : pos(_,Xc,Yc) & (X == Xc & (Y-Yc == 1 | Y-Yc == -1)) & not agent(_,X,Y,_,_) <- move(X,Y); !move_to(X,Y).
+
++!move_to(X,Y) : pos(_,Xc,Yc) & (X == Xc & (Y-Yc == 1 | Y-Yc == -1)) & agent(_,X,Y,_,_) <- random_move; !move_to(X,Y).
+
++!move_to(X,Y) <- move(X,Y); !move_to(X,Y).
+
 // searching free storage cell
+@sf2[atomic]
 +step(_) : searching(storage) & weight(W) & W == 0 & not no_storage <- +searching(food); -searching(storage).
 
 +step(_) : searching(storage) & no_storage <- +eating.
@@ -50,7 +66,7 @@ searching(food).
 								  
 +!find_storage: pos(_,X,Y) & not food_storage(X,Y) <- true.
 
-+!find_storage <- next_food_storage.
++!find_storage <- next_food_storage; !find_storage.
 
 // if subgoal failed...
 -!find_storage <- .broadcast(tell, no_storage).
