@@ -156,78 +156,44 @@ public class FoodModel extends GridWorldModel {
     	}
     	return false;
     }
+	
+	public Location nextMovePos(int ag, int x, int y) {
+		Location l = getAgPos(ag);
+		
+		    	// should go right
+    	if (l.x < x && isFree(l.x+1,l.y)) { 
+    		return new Location(l.x+1, l.y);
+    	}
+    	// should go left
+    	if (l.x > x && isFree(l.x-1,l.y)) { 
+    		return new Location(l.x-1, l.y);
+    	}
+    	// should go up
+    	if (l.y > y && isFree(l.x,l.y-1)) { 
+    		return new Location(l.x, l.y-1);
+    	}
+    	// should go down
+    	if (l.y < y && isFree(l.x,l.y+1)) { 
+    		return new Location(l.x, l.y+1);
+    	}
+    	return null;
+	}
 
     public boolean move(int ag, int x, int y) {
     	//if (strengths[ag] < MOVING_COST)
     	//	return false;
     	
-    	Location l = getAgPos(ag);
+    	Location next = nextMovePos(ag, x, y);
 		strengths[ag] -= MOVING_COST;
-    	
-    	// should go right
-    	if (l.x < x && isFree(l.x+1,l.y)) { 
-    		setAgPos(ag, l.x+1, l.y);
-    		return true;
-    	}
-    	// should go left
-    	if (l.x > x && isFree(l.x-1,l.y)) { 
-    		setAgPos(ag, l.x-1, l.y);
-    		return true;
-    	}
-    	// should go up
-    	if (l.y > y && isFree(l.x,l.y-1)) { 
-    		setAgPos(ag, l.x, l.y-1);
-    		return true;
-    	}
-    	// should go down
-    	if (l.y < y && isFree(l.x,l.y+1)) { 
-    		setAgPos(ag, l.x, l.y+1);
-    		return true;
-    	}
-    	return false;
-    }
-	
-	/* Проходит змейкой через хранилище еды */
-	public boolean next_food_storage(int ag) {
-		Location l = getAgPos(ag);
 		
-		if (l.x < queenFoodBeginX ||
-			l.x > queenFoodEndX ||
-			l.y < queenFoodBeginY ||
-			l.y > queenFoodEndY) {
-			logger.warning("Agent not in food storage area");
+		if (next != null) {
+			setAgPos(ag, next);
+			return true;
+		}
+    	else {
 			return false;
 		}
-		
-		if (l.x % 2 == 0) {
-			l.y++;
-			if (l.y > queenFoodEndY) {
-				l.x++;
-				if (l.x > queenFoodEndX) {
-					logger.warning("End of food storage");
-					logger.warning("RETURNING FALSE");
-					return false;
-				}
-				else {
-					l.y = queenFoodEndY;
-				}
-			}
-		}
-		else {
-			l.y--;
-			if (l.y < queenFoodBeginY) {
-				l.x++;
-				if (l.x > queenFoodEndX) {
-					logger.warning("End of food storage");
-					return false;
-				}
-				else {
-					l.y = queenFoodBeginY;
-				}
-			}
-		}
-		return move(ag, l.x, l.y);
-	}
+    }
     
     public boolean randomMove(int ag) {
     	Location l = getAgPos(ag);
@@ -297,6 +263,19 @@ public class FoodModel extends GridWorldModel {
 		return false;
 	}
 	
+	/* поедание загруженной фуражиром еды */
+	public boolean eatInternal(int ag) {
+		if (weights[ag] == 0) {
+			return false;
+		}
+		weights[ag]--;
+		strengths[ag] += FOOD_NUTRITIVE_VALUE;
+    	Location l = getFreePos(FOOD); 
+        add(FOOD, l);
+        setFoodOwner(l.x, l.y);
+		return true;
+	}
+	
 	public boolean unload(int ag) {
 		Location l = getAgPos(ag);
 		return unload(ag, l.x, l.y);
@@ -305,7 +284,7 @@ public class FoodModel extends GridWorldModel {
 	/* выгрузка еды */
 	private boolean unload(int ag, int x, int y) {
 		if (weights[ag] == 0) {
-			logger.warning("Nothing to unload");
+			//logger.warning("Nothing to unload");
 			return false;
 		}
 		
@@ -317,16 +296,16 @@ public class FoodModel extends GridWorldModel {
 				remove(RESERVED, x, y);
 				add(FOOD_STORAGE, x, y);
 				owner[x][y] = ag;
-				logger.warning("UNLOADED TO " + x + " " + y);
+				//logger.warning("UNLOADED TO " + x + " " + y);
 				return true;
 			}
 			else {
-				logger.warning("Cell already contains storage");
+				//logger.warning("Cell already contains storage");
 				return false;
 			}
 		}
 		else {
-			logger.warning("Can't unload to non-reserved cell.");
+			//logger.warning("Can't unload to non-reserved cell.");
 			return false;
 		}
 	}
@@ -378,8 +357,9 @@ public class FoodModel extends GridWorldModel {
 	}
 	
 	private Location getNextFreeQueenFoodPosition() {
-		logger.info("FoodModel.getNextFreeQueenFoodPosition called");
+		Location res = null;
 		if (queenFoodNextX != -1 && queenFoodNextY != -1) {
+			res = new Location(queenFoodNextX, queenFoodNextY);
 			queenFoodNextY++;
 			if (queenFoodNextY > queenFoodEndY) {
 				if (queenFoodNextX < queenFoodEndX) {
@@ -388,7 +368,6 @@ public class FoodModel extends GridWorldModel {
 				}
 				else {
 					queenFoodNextX = queenFoodNextY = -1;
-					return null;
 				}
 			}
 		}
@@ -396,12 +375,12 @@ public class FoodModel extends GridWorldModel {
 			if (queenFoodNextX == QUEEN_X && queenFoodNextY == QUEEN_Y) {
 				queenFoodNextY++;
 			}
-			Location loc = new Location(queenFoodNextX, queenFoodNextY); 
-			add(RESERVED, loc);
-			logger.info("Next free location is " + queenFoodNextX + " " + queenFoodNextY);
-			return loc; 
 		}
-		return null;
+		
+		if (res != null) {
+			add(RESERVED, res);
+		}
+		return res;
 	}
 	
 	public Location getAgReserved(int ag) {

@@ -68,11 +68,13 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     	int agId = ag2id.get(agName);
 	try {
     	if (actId.equals("eat")) {
-    		model.eat(agId);
-    	} else if (actId.equals("move")) {
+    		return model.eat(agId);
+		} else if (actId.equals("eat_internal")) {
+			return model.eatInternal(agId);
+		} else if (actId.equals("move")) {
     		int x = (int)(((NumberTerm)(action.getTerm(0))).solve());
     		int y = (int)(((NumberTerm)(action.getTerm(1))).solve());
-    		model.move(agId, x, y);
+    		return model.move(agId, x, y);
     	} else if (actId.equals("attack")) {
     		int x = (int)(((NumberTerm)(action.getTerm(0))).solve());
     		int y = (int)(((NumberTerm)(action.getTerm(1))).solve());
@@ -86,10 +88,9 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 			model.unload(agId);
 		} else if (actId.equals("reserve")) {
 			model.reserve(agId);
-		} else if (actId.equals("next_food_storage")) {
-			model.next_food_storage(agId);
 		} else {
     	    logger.warning("Unknown action: "+action);
+			return false;
     	}
 	} catch (Exception e) {}
         return true;
@@ -97,7 +98,7 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
 
     @Override
     protected int requiredStepsForAction(String agName, Structure action) {
-    	if (action.getFunctor().equals("eat")) {
+    	if (action.getFunctor().equals("eat") || action.getFunctor().equals("eat_internal")) {
     		return 3; // eat takes 2 steps
     	}    	
     	return super.requiredStepsForAction(agName, action);
@@ -110,8 +111,9 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     }
     
     long sum = 0;
-    List<Double> strategicValues  = new ArrayList<Double>();
-    List<Double> reputationValues = new ArrayList<Double>();
+    //List<Double> strategicValues  = new ArrayList<Double>();
+    //List<Double> reputationValues = new ArrayList<Double>();
+	List<Double> foragerValues = new ArrayList<Double>();
     
     
     @Override
@@ -124,13 +126,15 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
             //logger.info(String.format("  Reputation Str/Var/Att %7.0f", getStrength("reputation") ));
             
             if (view != null) {
-                view.addSerie("strategic", getData(strategicValues));
-                view.addSerie("reputation", getData(reputationValues));
+				view.addSerie("forager", getData(foragerValues));
+      //          view.addSerie("strategic", getData(strategicValues));
+                //view.addSerie("reputation", getData(reputationValues));
             }
     	}
     	sum += time;
-    	strategicValues.add(getStrength("strategic"));
-    	reputationValues.add(getStrength("reputation"));
+    	//strategicValues.add(getStrength("strategic"));
+    	//reputationValues.add(getStrength("reputation"));
+		foragerValues.add(getStrength("forager"));
     }
     
 
