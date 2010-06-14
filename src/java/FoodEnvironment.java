@@ -252,22 +252,6 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
         testFood(agName, ag, aSmell, l.x-2, l.y);
         testFood(agName, ag, aSmell, l.x-1, l.y - 1);
         testFood(agName, ag, aSmell, l.x-1, l.y + 1);
-		
-		// добавлено: матка
-		testQueen(agName, ag, aMyPos,  l.x, l.y);
-        testQueen(agName, ag, aSee, l.x - 1, l.y);
-        testQueen(agName, ag, aSee, l.x + 1, l.y);
-        testQueen(agName, ag, aSee, l.x, l.y + 1);
-        testQueen(agName, ag, aSee, l.x, l.y - 1);
-
-        testQueen(agName, ag, aSmell, l.x,   l.y - 2);
-        testQueen(agName, ag, aSmell, l.x,   l.y + 2);
-        testQueen(agName, ag, aSmell, l.x+1, l.y - 1);
-        testQueen(agName, ag, aSmell, l.x+1, l.y + 1);
-        testQueen(agName, ag, aSmell, l.x+2, l.y);
-        testQueen(agName, ag, aSmell, l.x-2, l.y);
-        testQueen(agName, ag, aSmell, l.x-1, l.y - 1);
-        testQueen(agName, ag, aSmell, l.x-1, l.y + 1);
    
         addPercept(agName, lstep);
         
@@ -296,16 +280,6 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     		                where,
     		                ASSyntax.createNumber(model.getFoodOwner(x, y)));
 			addPercept(agName, f);
-    	}
-    }
-	
-	void testQueen(String agName, int ag, Atom where, int x, int y) {
-    	if (model.hasObject(FoodModel.QUEEN, x, y)) {
-    		Literal q = ASSyntax.createLiteral("queen",
-    		                ASSyntax.createNumber(x),
-    		                ASSyntax.createNumber(y),
-    		                where);
-			addPercept(agName, q);
     	}
     }
 
