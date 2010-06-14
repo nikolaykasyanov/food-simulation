@@ -7,13 +7,15 @@ import jason.environment.grid.Location;
 public class FoodModel extends GridWorldModel {
     
     public static final int FOOD  = 16; // represent a cell with food
-	public static final int QUEEN = 32; // ячейка с маткой
-	public static final int QUEENS_FOOD = 64; // зарезервированная под еду для матки ячейка
-	public static final int RESERVED = 128; // забронированая фуражиром ячейка для выгрузки еды
-	public static final int FOOD_STORAGE = 256;
+	public static final int QUEEN = 32; // cell with queen
+	public static final int FOOD_STORAGE = 64; // cell intented to store food
+	public static final int RESERVED = 128; // cell intented to store food, reserved by agent
+	public static final int QUEENS_FOOD = 256; // filled food storage
 	
+	// Size of food storage area. Corresponds to agent's "storage_size" belief
 	public static final int RESERVED_SIZE = 2;
 	
+	// queen position. Corresponds to agent's "queen" belief
 	public static final int QUEEN_X = 10;
 	public static final int QUEEN_Y = 10;
 
@@ -32,7 +34,7 @@ public class FoodModel extends GridWorldModel {
     int[][] owner; // the owner (agent id) of each food
     private int attackCount = 0;
 	
-	// добавлено: текущей загрузки фуражиров
+	// добавлено: текущие нагрузки фуражиров
 	int[] weights;
 	
 	// добавлено: массив зарезервированных под еду клеток
@@ -81,7 +83,7 @@ public class FoodModel extends GridWorldModel {
 		for(int x=queenFoodBeginX; x <= queenFoodEndX; x++) {
 			for (int y=queenFoodBeginY; y <= queenFoodEndY; y++) {
 				//if (!(x == QUEEN_X && y == QUEEN_Y)) {
-					add(QUEENS_FOOD, new Location(x, y));
+					add(FOOD_STORAGE, new Location(x, y));
 				//}
 			}
 		}
@@ -289,12 +291,12 @@ public class FoodModel extends GridWorldModel {
 		}
 		
 		// check if cell is clean
-		if (hasObject(QUEENS_FOOD, x, y)) {
-			if (!hasObject(FOOD_STORAGE, x, y)) {
+		if (hasObject(FOOD_STORAGE, x, y)) {
+			if (!hasObject(QUEENS_FOOD, x, y)) {
 				reserved[ag] = null;
 				weights[ag]--;
 				remove(RESERVED, x, y);
-				add(FOOD_STORAGE, x, y);
+				add(QUEENS_FOOD, x, y);
 				owner[x][y] = ag;
 				//logger.warning("UNLOADED TO " + x + " " + y);
 				return true;
