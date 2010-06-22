@@ -17,12 +17,14 @@ public class FoodView extends GridWorldView {
     private static final long serialVersionUID = 1L;
 
     FoodModel hmodel;
+	FoodEnvironment henv;
 
     DefaultXYDataset dataset = new DefaultXYDataset();
 	
     public FoodView(FoodModel model, final FoodEnvironment env) {
         super(model, "Normative Simulation", 700);
 		hmodel = model;
+		henv = env;
         setVisible(true);
         repaint();
 		
@@ -62,7 +64,14 @@ public class FoodView extends GridWorldView {
 
     @Override
     public void drawAgent(Graphics g, int x, int y, Color c, int id) {
-        g.setColor(Color.GRAY);
+		String agentName = henv.id2ag.get(id);
+		assert agentName != null : "Can't get agent name for id " + id;
+		if (agentName != null && agentName.startsWith("forager")) {
+			g.setColor(Color.RED);
+		}
+		else {
+			g.setColor(Color.GRAY);
+		}
         g.fillRect(x * cellSizeW + 1, y * cellSizeH+1, cellSizeW-1, cellSizeH-1);
         if (hmodel.hasObject(FoodModel.FOOD, x, y)) {
 	        drawFood(g, x, y);			
@@ -71,10 +80,13 @@ public class FoodView extends GridWorldView {
 			drawQueen(g, x, y);
 		}
 		if (hmodel.hasObject(FoodModel.FOOD_STORAGE, x, y)) {
-			drawStoredFood(g, x, y);
+			drawStorage(g, x, y);
 		}
 		if (hmodel.hasObject(FoodModel.QUEENS_FOOD, x, y)) {
-			drawStorage(g, x, y);
+			drawStoredFood(g, x, y);
+		}
+		if (hmodel.hasObject(FoodModel.RESERVED, x, y)) {
+			drawReserved(g, x, y);
 		}
     }
 	
@@ -87,10 +99,13 @@ public class FoodView extends GridWorldView {
 			drawQueen(g, x, y);
 		}
 		if (object == FoodModel.FOOD_STORAGE && !hmodel.hasObject(FoodModel.AGENT, x, y)) {
-			drawStoredFood(g, x, y);
+			drawStorage(g, x, y);	
 		}
 		if (object == FoodModel.QUEENS_FOOD && !hmodel.hasObject(FoodModel.AGENT, x, y)) {
-			drawStorage(g, x, y);
+			drawStoredFood(g, x, y);
+		}
+		if (object == FoodModel.RESERVED && !hmodel.hasObject(FoodModel.AGENT, x, y)) {
+			drawReserved(g, x, y);
 		}
 	}
 
@@ -112,6 +127,11 @@ public class FoodView extends GridWorldView {
 	public void drawStoredFood(Graphics g, int x, int y) {
 		g.setColor(Color.GREEN);
 		g.fillRect(x * cellSizeW + 3, y * cellSizeH+3, cellSizeW-6, cellSizeH-6);
+	}
+	
+	public void drawReserved(Graphics g, int x, int y) {
+		g.setColor(Color.ORANGE);
+		g.fillRect(x * cellSizeW, y * cellSizeH, cellSizeW, cellSizeH);
 	}
 
 }

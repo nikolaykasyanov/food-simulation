@@ -111,8 +111,8 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
     }
     
     long sum = 0;
-    //List<Double> strategicValues  = new ArrayList<Double>();
-    //List<Double> reputationValues = new ArrayList<Double>();
+    List<Double> strategicValues  = new ArrayList<Double>();
+    List<Double> reputationValues = new ArrayList<Double>();
 	List<Double> foragerValues = new ArrayList<Double>();
     
     
@@ -127,13 +127,13 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
             
             if (view != null) {
 				view.addSerie("forager", getData(foragerValues));
-      //          view.addSerie("strategic", getData(strategicValues));
-                //view.addSerie("reputation", getData(reputationValues));
+				view.addSerie("strategic", getData(strategicValues));
+				view.addSerie("reputation", getData(reputationValues));
             }
     	}
     	sum += time;
-    	//strategicValues.add(getStrength("strategic"));
-    	//reputationValues.add(getStrength("reputation"));
+    	strategicValues.add(getStrength("strategic"));
+    	reputationValues.add(getStrength("reputation"));
 		foragerValues.add(getStrength("forager"));
     }
     
@@ -142,7 +142,8 @@ public class FoodEnvironment extends TimeSteppedEnvironment {
         double sum = 0;
         double q   = 0;
         for (int i=0; i<getNbAgs(); i++) {
-            if (id2ag.get(i).startsWith(typeOfAg)) {
+			String agName = id2ag.get(i);
+			if (agName != null && agName.startsWith(typeOfAg)) {
                 sum += model.getAgStrength(i);
                 q++;
             }
